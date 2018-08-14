@@ -17,9 +17,9 @@ class AbstractKey(models.Model):
         verbose_name = _('ID'),
         primary_key = True,
     )
-    key = models.CharField(
+    key = models.UUIDField(
         verbose_name = _('Key'),
-        max_length = 32,
+        default = uuid4,
         unique = True,
     )
     updated_at = models.DateTimeField(
@@ -89,7 +89,7 @@ class AccessKey(AbstractKey):
     owner = models.ForeignKey(
         UserModel,
         verbose_name = _('Owner'),
-        related_name = _('access_key_owner_belongs_to_user'),
+        related_name = _('access_keys'),
         on_delete = models.CASCADE,
     )
 

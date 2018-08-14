@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 
 from rest_framework.test import APITestCase, APIRequestFactory
-from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_200_OK, HTTP_403_FORBIDDEN
 
 from rest_framework_jk.settings import api_settings
 from rest_framework_jk.authentication import AuthKeyAuthentication, AccessKeyAuthentication
@@ -95,8 +95,8 @@ class AuthKeyTestCase(BaseTestCase):
         # Invalid case
         invalid_request = factory.post(url, self.get_invalid_user_pass())
         invalid_response = view(invalid_request)
-        self.assertEqual(invalid_response.status_code, HTTP_400_BAD_REQUEST)
-        self.assertEqual(invalid_response.data.keys(), { 'non_field_errors' })
+        self.assertEqual(invalid_response.status_code, HTTP_403_FORBIDDEN)
+        self.assertEqual(invalid_response.data.keys(), { 'detail' })
         return (Dict(**valid_response.data), Dict(**invalid_response.data))
 
     def test_auth_verify(self):
@@ -112,8 +112,8 @@ class AuthKeyTestCase(BaseTestCase):
         # Invalid case
         invalid_request = factory.post(url, Dict({ 'auth_key': uuid4().hex }))
         invalid_response = view(invalid_request)
-        self.assertEqual(invalid_response.status_code, HTTP_400_BAD_REQUEST)
-        self.assertEqual(invalid_response.data.keys(), { 'non_field_errors' })
+        self.assertEqual(invalid_response.status_code, HTTP_403_FORBIDDEN)
+        self.assertEqual(invalid_response.data.keys(), { 'detail' })
 
     def test_auth_verify_with_lapsed_auth_key(self):
         url = reverse('jk-auth-verify')
@@ -125,8 +125,8 @@ class AuthKeyTestCase(BaseTestCase):
         # Invalid case
         invalid_request = factory.post(url, valid_data.fkeys({ 'auth_key' }))
         invalid_response = view(invalid_request)
-        self.assertEqual(invalid_response.status_code, HTTP_400_BAD_REQUEST)
-        self.assertEqual(invalid_response.data.keys(), { 'non_field_errors' })
+        self.assertEqual(invalid_response.status_code, HTTP_403_FORBIDDEN)
+        self.assertEqual(invalid_response.data.keys(), { 'detail' })
         # Restore expiration date to default
         api_settings.AUTH_EXPIRATION_DELTA = api_settings.defaults['AUTH_EXPIRATION_DELTA']
 
@@ -145,8 +145,8 @@ class AuthKeyTestCase(BaseTestCase):
         # Invalid case
         invalid_request = factory.post(url, Dict({ 'auth_key': uuid4().hex, 'refresh_key': uuid4().hex }))
         invalid_response = view(invalid_request)
-        self.assertEqual(invalid_response.status_code, HTTP_400_BAD_REQUEST)
-        self.assertEqual(invalid_response.data.keys(), { 'non_field_errors' })
+        self.assertEqual(invalid_response.status_code, HTTP_403_FORBIDDEN)
+        self.assertEqual(invalid_response.data.keys(), { 'detail' })
 
     def test_auth_refresh_with_lapsed_auth_key(self):
         url = reverse('jk-auth-refresh')
@@ -176,8 +176,8 @@ class AuthKeyTestCase(BaseTestCase):
         # Invalid case
         invalid_request = factory.post(url, valid_data.fkeys({ 'auth_key', 'refresh_key' }))
         invalid_response = view(invalid_request)
-        self.assertEqual(invalid_response.status_code, HTTP_400_BAD_REQUEST)
-        self.assertEqual(invalid_response.data.keys(), { 'non_field_errors' })
+        self.assertEqual(invalid_response.status_code, HTTP_403_FORBIDDEN)
+        self.assertEqual(invalid_response.data.keys(), { 'detail' })
         # Restore expiration date to default
         api_settings.REFRESH_EXPIRATION_DELTA = api_settings.defaults['REFRESH_EXPIRATION_DELTA']
 
@@ -207,8 +207,8 @@ class AccessKeyTestCase(BaseTestCase):
         # Invalid case
         invalid_request = factory.post(url, self.get_invalid_user_pass())
         invalid_response = view(invalid_request)
-        self.assertEqual(invalid_response.status_code, HTTP_400_BAD_REQUEST)
-        self.assertEqual(invalid_response.data.keys(), { 'non_field_errors' })
+        self.assertEqual(invalid_response.status_code, HTTP_403_FORBIDDEN)
+        self.assertEqual(invalid_response.data.keys(), { 'detail' })
         return (Dict(**valid_response.data), Dict(**invalid_response.data))
 
     def test_access_refresh(self):
@@ -225,8 +225,8 @@ class AccessKeyTestCase(BaseTestCase):
         # Invalid case
         invalid_request = factory.post(url, Dict({ 'access_key': uuid4().hex }).merge(self.get_invalid_user_pass()))
         invalid_response = view(invalid_request)
-        self.assertEqual(invalid_response.status_code, HTTP_400_BAD_REQUEST)
-        self.assertEqual(invalid_response.data.keys(), { 'non_field_errors' })
+        self.assertEqual(invalid_response.status_code, HTTP_403_FORBIDDEN)
+        self.assertEqual(invalid_response.data.keys(), { 'detail' })
 
     def test_access_destroy(self):
         url = reverse('jk-access-destroy')
@@ -242,5 +242,5 @@ class AccessKeyTestCase(BaseTestCase):
         # Invalid case
         invalid_request = factory.post(url, Dict({ 'access_key': uuid4().hex }).merge(self.get_invalid_user_pass()))
         invalid_response = view(invalid_request)
-        self.assertEqual(invalid_response.status_code, HTTP_400_BAD_REQUEST)
-        self.assertEqual(invalid_response.data.keys(), { 'non_field_errors' })
+        self.assertEqual(invalid_response.status_code, HTTP_403_FORBIDDEN)
+        self.assertEqual(invalid_response.data.keys(), { 'detail' })
