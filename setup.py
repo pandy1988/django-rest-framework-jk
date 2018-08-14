@@ -10,7 +10,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='djangorestframework-jk',
-    version='1.0.1',
+    version='1.1.0',
     description='Django REST framework JSON key.',
     long_description=long_description,
     url='https://github.com/pandy1988/django-rest-framework-jk',
