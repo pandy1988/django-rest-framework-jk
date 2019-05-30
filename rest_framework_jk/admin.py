@@ -1,9 +1,9 @@
 from django.contrib import admin
 
-from rest_framework_jk.models import AuthKey, RefreshKey, AccessKey
+from rest_framework_jk import models
 
 # Register your models here.
 
-admin.site.register(AuthKey)
-admin.site.register(RefreshKey)
-admin.site.register(AccessKey)
+admin.site.register(models.AuthKey)
+admin.site.register(models.RefreshKey)
+admin.site.register(models.AccessKey)

@@ -1,9 +1,10 @@
 from django.utils.timezone import now
 
+from rest_framework_jk import models
 from rest_framework_jk.settings import api_settings
-from rest_framework_jk.models import AuthKey, RefreshKey, AccessKey
 
 # Create your methods here.
+
 
 def verify_auth_key(key, precise=True):
     """
@@ -13,15 +14,16 @@ def verify_auth_key(key, precise=True):
     :param bool precise: Precise check mode.
     """
     expiration = now() - api_settings.AUTH_EXPIRATION_DELTA
+
     try:
         if precise:
-            auth_key = AuthKey.objects.get(key=key, updated_at__gte=expiration)
+            auth_key = models.AuthKey.objects.get(key=key, updated_at__gte=expiration)
         else:
-            auth_key = AuthKey.objects.get(key=key)
-    except:
+            auth_key = models.AuthKey.objects.get(key=key)
+    except models.AuthKey.DoesNotExist:
         return None
-    else:
-        return auth_key
+
+    return auth_key
 
 
 def verify_refresh_key(key):
@@ -31,12 +33,13 @@ def verify_refresh_key(key):
     :param str key: Refresh key string.
     """
     expiration = now() - api_settings.REFRESH_EXPIRATION_DELTA
+
     try:
-        refresh_key = RefreshKey.objects.get(key=key, updated_at__gte=expiration)
-    except:
+        refresh_key = models.RefreshKey.objects.get(key=key, updated_at__gte=expiration)
+    except models.RefreshKey.DoesNotExist:
         return None
-    else:
-        return refresh_key
+
+    return refresh_key
 
 
 def verify_access_key(key):
@@ -45,9 +48,10 @@ def verify_access_key(key):
 
     :param str key: Access key string.
     """
+
     try:
-        access_key = AccessKey.objects.get(key=key)
-    except:
+        access_key = models.AccessKey.objects.get(key=key)
+    except models.AccessKey.DoesNotExist:
         return None
-    else:
-        return access_key
+
+    return access_key

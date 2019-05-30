@@ -1,4 +1,4 @@
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext as _
 
 from rest_framework import serializers
 from rest_framework.compat import authenticate
@@ -8,22 +8,24 @@ from rest_framework_jk.compat import verify_auth_key, verify_refresh_key, verify
 
 # Create your serializers here.
 
+
 class AuthSerializer(serializers.Serializer):
     """
     Serializer for user credentials.
     """
     username = serializers.CharField(
-        label = _('Username'),
+        label=_('Username'),
     )
     password = serializers.CharField(
-        label = _('Password'),
-        style = { 'input_type': 'password' },
-        trim_whitespace = False,
+        label=_('Password'),
+        style={'input_type': 'password'},
+        trim_whitespace=False,
     )
 
     def validate(self, attrs):
         username = attrs.get('username')
         password = attrs.get('password')
+
         if username and password:
             user = authenticate(request=self.context.get('request'), username=username, password=password)
             if user:
@@ -39,6 +41,7 @@ class AuthSerializer(serializers.Serializer):
         else:
             message = _('Must include "username" and "password".')
             raise ValidationError(message, code='authenticate')
+
         attrs['user'] = user
         return attrs
 
@@ -48,12 +51,13 @@ class VerifyAuthKeySerializer(serializers.Serializer):
     Serializer of authentication key.
     """
     auth_key = serializers.UUIDField(
-        label = _('Auth key'),
-        format = 'hex',
+        label=_('Auth key'),
+        format='hex',
     )
 
     def validate(self, attrs):
         auth_key = attrs.get('auth_key')
+
         if auth_key:
             verified_auth_key = verify_auth_key(auth_key.hex)
             if not verified_auth_key:
@@ -62,6 +66,7 @@ class VerifyAuthKeySerializer(serializers.Serializer):
         else:
             message = _('Must include "auth_key".')
             raise ValidationError(message, code='verify_auth_key')
+
         attrs['auth_key'] = verified_auth_key
         return attrs
 
@@ -71,13 +76,14 @@ class RefreshAuthKeySerializer(VerifyAuthKeySerializer):
     Serializer of refresh key.
     """
     refresh_key = serializers.UUIDField(
-        label = _('Refresh key'),
-        format = 'hex',
+        label=_('Refresh key'),
+        format='hex',
     )
 
     def validate(self, attrs):
         auth_key = attrs.get('auth_key')
         refresh_key = attrs.get('refresh_key')
+
         if auth_key and refresh_key:
             verified_auth_key = verify_auth_key(auth_key.hex, precise=False)
             verified_refresh_key = verify_refresh_key(refresh_key.hex)
@@ -91,6 +97,7 @@ class RefreshAuthKeySerializer(VerifyAuthKeySerializer):
         else:
             message = _('Must include "auth_key" and "refresh_key".')
             raise ValidationError(message, code='verify_refresh_key')
+
         attrs['auth_key'] = verified_auth_key
         attrs['refresh_key'] = verified_refresh_key
         return attrs
@@ -101,14 +108,15 @@ class AccessKeySerializer(AuthSerializer):
     Serializer of access key.
     """
     access_key = serializers.UUIDField(
-        label = _('Access key'),
-        format = 'hex',
+        label=_('Access key'),
+        format='hex',
     )
 
     def validate(self, attrs):
         super(AccessKeySerializer, self).validate(attrs)
         user = attrs.get('user')
         access_key = attrs.get('access_key')
+
         if access_key:
             verified_access_key = verify_access_key(access_key.hex)
             if not verified_access_key:
@@ -121,5 +129,6 @@ class AccessKeySerializer(AuthSerializer):
         else:
             message = _('Must include "access_key".')
             raise ValidationError(message, code='verify_access_key')
+
         attrs['access_key'] = verified_access_key
         return attrs
