@@ -65,30 +65,22 @@ The user can have only one authentication key.
 
 ```
 # curl -X POST -H 'Content-Type: application/json' -d '{
-    "username": "....",
-    "password": "...."
-}' http://localhost/key/auth-obtain
+    "username": "........",
+    "password": "........"
+}' http://localhost/key/auth
 ```
 
 ```
-# curl -X POST -H 'Authorization: JK-Auth ........' http://localhost/api/method
-```
-
-**Verify**
-
-```
-# curl -X POST -H 'Content-Type: application/json' -d '{
-    "auth_key": "........"
-}' http://localhost/key/auth-verify
+# curl -X GET -H 'Authorization: JK-Auth <auth_key>' http://localhost/api/method
 ```
 
 **Refresh**
 
 ```
-# curl -X POST -H 'Content-Type: application/json' -d '{
+# curl -X PUT -H 'Content-Type: application/json' -d '{
     "auth_key": "........",
     "refresh_key": "........"
-}' http://localhost/key/auth-refresh
+}' http://localhost/key/auth/refresh
 ```
 
 ## Access Key
@@ -98,34 +90,25 @@ A user can have multiple access keys.
 **Obtain**
 
 ```
-# curl -X POST -H 'Content-Type: application/json' -d '{
-    "username": "....",
-    "password": "...."
-}' http://localhost/key/access-obtain
+# curl -X POST -H 'Authorization: JK-Auth <auth_key>' -d '{
+    "name": "This is access key"
+}' http://localhost/key/access
 ```
 
 ```
-# curl -X POST -H 'Authorization: JK-Access ........' http://localhost/api/method
+# curl -X GET -H 'Authorization: JK-Access <access_key>' http://localhost/api/method
 ```
 
 **Refresh**
 
 ```
-# curl -X POST -H 'Content-Type: application/json' -d '{
-    "username": "....",
-    "password": "....",
-    "access_key": "........"
-}' http://localhost/key/access-refresh
+# curl -X PUT -H 'Authorization: JK-Auth <auth_key>' http://localhost/key/access/<access_key>/refresh
 ```
 
 **Destory**
 
 ```
-# curl -X POST -H 'Content-Type: application/json' -d '{
-    "username": "....",
-    "password": "....",
-    "access_key": "........"
-}' http://localhost/key/access-destroy
+# curl -X DELETE -H 'Authorization: JK-Auth <auth_key>' http://localhost/key/access/<access_key>
 ```
 
 ## Settings

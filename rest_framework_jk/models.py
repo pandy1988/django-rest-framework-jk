@@ -1,12 +1,9 @@
 from uuid import uuid4
 
 from django.db import models
-from django.contrib.auth import get_user_model
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 # Create your models here.
-
-UserModel = get_user_model()
 
 
 class AbstractKey(models.Model):
@@ -14,29 +11,26 @@ class AbstractKey(models.Model):
     This is an abstract class that defines the basic items of the key model.
     """
     id = models.AutoField(
-        verbose_name = _('ID'),
-        primary_key = True,
+        verbose_name=_('ID'),
+        primary_key=True,
     )
     key = models.UUIDField(
-        verbose_name = _('Key'),
-        default = uuid4,
-        unique = True,
+        verbose_name=_('Key'),
+        default=uuid4,
+        unique=True,
     )
     updated_at = models.DateTimeField(
-        verbose_name = _('Updated at'),
-        auto_now = True,
+        verbose_name=_('Updated at'),
+        auto_now=True,
     )
 
     class Meta:
         abstract = True
 
     def __str__(self):
-        return '%s' % self.key
+        return self.key
 
-    def save(self, *args, **kwargs):
-        self.key = self.generate_key()
-        return super(AbstractKey, self).save(*args, **kwargs)
-
+    @property
     def generate_key(self):
         """
         To generate a unique key, use uuid4.
@@ -51,9 +45,10 @@ class AuthKey(AbstractKey):
     The user can have only one authentication key.
     """
     owner = models.OneToOneField(
-        UserModel,
-        verbose_name = _('Owner'),
-        on_delete = models.CASCADE,
+        'auth.User',
+        verbose_name=_('Owner'),
+        related_name=_('auth_key'),
+        on_delete=models.CASCADE,
     )
 
     class Meta:
@@ -69,9 +64,10 @@ class RefreshKey(AbstractKey):
     The user can have only one refresh key.
     """
     owner = models.OneToOneField(
-        UserModel,
-        verbose_name = _('Owner'),
-        on_delete = models.CASCADE,
+        'auth.User',
+        verbose_name=_('Owner'),
+        related_name=_('refresh_key'),
+        on_delete=models.CASCADE,
     )
 
     class Meta:
@@ -86,11 +82,16 @@ class AccessKey(AbstractKey):
     Access key shall be used from the other systems.
     A user can have multiple access keys.
     """
+    name = models.CharField(
+        verbose_name=_('Name'),
+        max_length=255,
+        blank=True,
+    )
     owner = models.ForeignKey(
-        UserModel,
-        verbose_name = _('Owner'),
-        related_name = _('access_keys'),
-        on_delete = models.CASCADE,
+        'auth.User',
+        verbose_name=_('Owner'),
+        related_name=_('access_keys'),
+        on_delete=models.CASCADE,
     )
 
     class Meta:

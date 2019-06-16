@@ -1,17 +1,10 @@
-from django.urls import path
+from rest_framework import routers
 
-from rest_framework_jk.views import (
-    ObtainAuthKey, VerifyAuthKey, RefreshAuthKey,
-    ObtainAccessKey, RefreshAccessKey, DestroyAccessKey,
-)
+from rest_framework_jk import views
 
 # Create your urls here.
 
-urlpatterns = [
-    path('auth-obtain', ObtainAuthKey.as_view(), name='jk-auth-obtain'),
-    path('auth-verify', VerifyAuthKey.as_view(), name='jk-auth-verify'),
-    path('auth-refresh', RefreshAuthKey.as_view(), name='jk-auth-refresh'),
-    path('access-obtain', ObtainAccessKey.as_view(), name='jk-access-obtain'),
-    path('access-refresh', RefreshAccessKey.as_view(), name='jk-access-refresh'),
-    path('access-destroy', DestroyAccessKey.as_view(), name='jk-access-destroy'),
-]
+router = routers.DefaultRouter(trailing_slash=False)
+router.register('auth', views.AuthKeyViewSet, base_name='auth')
+router.register('access', views.AccessKeyViewSet, base_name='access')
+urlpatterns = router.urls

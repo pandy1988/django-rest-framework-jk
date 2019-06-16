@@ -1,102 +1,72 @@
-from rest_framework.views import APIView
+from rest_framework import viewsets, mixins
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.decorators import list_route, detail_route
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
-from rest_framework_jk.models import AuthKey, RefreshKey, AccessKey
-from rest_framework_jk.serializers import (
-    AuthSerializer,
-    VerifyAuthKeySerializer, RefreshAuthKeySerializer,
-    AccessKeySerializer,
-)
+from rest_framework_jk import models, serializers
 
 # Create your views here.
 
-class ObtainAuthKey(APIView):
+
+class AuthKeyViewSet(viewsets.GenericViewSet):
     """
-    Issue the authentication key and refresh key.
+    Viewset of authentication key.
     """
-    serializer_class = AuthSerializer
     permission_classes = (AllowAny,)
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={ 'request': request })
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return serializers.ObtainAuthKeySerializer
+        elif self.action == 'refresh':
+            return serializers.RefreshAuthKeySerializer
+        return serializers.AuthKeySerializer
+
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        auth_key, void = AuthKey.objects.update_or_create(owner=user)
-        refresh_key, void = RefreshKey.objects.update_or_create(owner=user)
-        return Response({ 'auth_key': auth_key.key, 'refresh_key': refresh_key.key })
+        user = serializer.validated_data.get('user')
+        auth_key, void = models.AuthKey.objects.update_or_create(owner=user)
+        refresh_key, void = models.RefreshKey.objects.update_or_create(owner=user)
+        return Response({'auth_key': auth_key.key, 'refresh_key': refresh_key.key})
 
-
-class VerifyAuthKey(APIView):
-    """
-    Confirm that the authentication key is valid.
-    """
-    serializer_class = VerifyAuthKeySerializer
-    permission_classes = (AllowAny,)
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
+    @list_route(methods=['put', 'patch'])
+    def refresh(self, request):
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response({ 'success': 'auth_key' in serializer.validated_data })
-
-
-class RefreshAuthKey(APIView):
-    """
-    Refresh the authentication key.
-    """
-    serializer_class = RefreshAuthKeySerializer
-    permission_classes = (AllowAny,)
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        auth_key = serializer.validated_data['auth_key']
-        refresh_key = serializer.validated_data['refresh_key']
+        auth_key = serializer.validated_data.get('auth_key')
+        refresh_key = serializer.validated_data.get('refresh_key')
+        auth_key.key = auth_key.generate_key
         auth_key.save()
+        refresh_key.key = refresh_key.generate_key
         refresh_key.save()
-        return Response({ 'auth_key': auth_key.key, 'refresh_key': refresh_key.key })
+        return Response({'auth_key': auth_key.key, 'refresh_key': refresh_key.key})
 
 
-class ObtainAccessKey(APIView):
+class AccessKeyViewSet(mixins.ListModelMixin,
+                       mixins.CreateModelMixin,
+                       mixins.RetrieveModelMixin,
+                       mixins.UpdateModelMixin,
+                       mixins.DestroyModelMixin,
+                       viewsets.GenericViewSet):
     """
-    Issue the access key.
+    Viewset of access key.
     """
-    serializer_class = AuthSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        access_key = AccessKey.objects.create(owner=user)
-        return Response({ 'access_key': access_key.key })
+    def get_queryset(self):
+        return models.AccessKey.objects.filter(owner=self.request.user)
 
+    def get_serializer_class(self):
+        if self.action == 'refresh':
+            return serializers.RefreshAccessKeySerializer
+        return serializers.AccessKeySerializer
 
-class RefreshAccessKey(APIView):
-    """
-    Refresh the access key.
-    """
-    serializer_class = AccessKeySerializer
-    permission_classes = (AllowAny,)
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        access_key = serializer.validated_data['access_key']
+    @detail_route(methods=['put', 'patch'])
+    def refresh(self, request, pk=None):
+        access_key = self.get_object()
+        access_key.key = access_key.generate_key
         access_key.save()
-        return Response({ 'access_key': access_key.key })
+        return Response({'access_key': access_key.key})
 
-
-class DestroyAccessKey(APIView):
-    """
-    Destroy the access key.
-    """
-    serializer_class = AccessKeySerializer
-    permission_classes = (AllowAny,)
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        access_key = serializer.validated_data['access_key']
-        count, void = access_key.delete()
-        return Response({ 'success': count == 1 })
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
