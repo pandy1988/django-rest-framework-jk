@@ -74,18 +74,13 @@ The user can have only one authentication key.
 # curl -X GET -H 'Authorization: JK-Auth <auth_key>' http://localhost/api/method
 ```
 
-**Verify**
-
-```
-# curl -X GET http://localhost/key/auth/<auth_key>
-```
-
 **Refresh**
 
 ```
 # curl -X PUT -H 'Content-Type: application/json' -d '{
+    "auth_key": "........",
     "refresh_key": "........"
-}' http://localhost/key/auth/<auth_key>
+}' http://localhost/key/auth/refresh
 ```
 
 ## Access Key
@@ -95,7 +90,9 @@ A user can have multiple access keys.
 **Obtain**
 
 ```
-# curl -X POST -H 'Authorization: JK-Auth <auth_key>' http://localhost/key/access
+# curl -X POST -H 'Authorization: JK-Auth <auth_key>' -d '{
+    "name": "This is access key"
+}' http://localhost/key/access
 ```
 
 ```
@@ -105,7 +102,7 @@ A user can have multiple access keys.
 **Refresh**
 
 ```
-# curl -X PUT -H 'Authorization: JK-Auth <auth_key>' http://localhost/key/access/<access_key>
+# curl -X PUT -H 'Authorization: JK-Auth <auth_key>' http://localhost/key/access/<access_key>/refresh
 ```
 
 **Destory**

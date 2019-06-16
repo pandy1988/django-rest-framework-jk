@@ -28,12 +28,9 @@ class AbstractKey(models.Model):
         abstract = True
 
     def __str__(self):
-        return '%s' % self.key
+        return self.key
 
-    def save(self, *args, **kwargs):
-        self.key = self.generate_key()
-        return super(AbstractKey, self).save(*args, **kwargs)
-
+    @property
     def generate_key(self):
         """
         To generate a unique key, use uuid4.
@@ -50,6 +47,7 @@ class AuthKey(AbstractKey):
     owner = models.OneToOneField(
         'auth.User',
         verbose_name=_('Owner'),
+        related_name=_('auth_key'),
         on_delete=models.CASCADE,
     )
 
@@ -68,6 +66,7 @@ class RefreshKey(AbstractKey):
     owner = models.OneToOneField(
         'auth.User',
         verbose_name=_('Owner'),
+        related_name=_('refresh_key'),
         on_delete=models.CASCADE,
     )
 
@@ -83,6 +82,11 @@ class AccessKey(AbstractKey):
     Access key shall be used from the other systems.
     A user can have multiple access keys.
     """
+    name = models.CharField(
+        verbose_name=_('Name'),
+        max_length=255,
+        blank=True,
+    )
     owner = models.ForeignKey(
         'auth.User',
         verbose_name=_('Owner'),
