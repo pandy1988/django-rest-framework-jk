@@ -1,6 +1,6 @@
 from rest_framework import viewsets, mixins
 from rest_framework.response import Response
-from rest_framework.decorators import list_route, detail_route
+from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from rest_framework_jk import models, serializers
@@ -29,7 +29,7 @@ class AuthKeyViewSet(viewsets.GenericViewSet):
         refresh_key, void = models.RefreshKey.objects.update_or_create(owner=user)
         return Response({'auth_key': auth_key.key, 'refresh_key': refresh_key.key})
 
-    @list_route(methods=['put', 'patch'])
+    @action(detail=False, methods=['put', 'patch'])
     def refresh(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -61,7 +61,7 @@ class AccessKeyViewSet(mixins.ListModelMixin,
             return serializers.RefreshAccessKeySerializer
         return serializers.AccessKeySerializer
 
-    @detail_route(methods=['put', 'patch'])
+    @action(detail=True, methods=['put', 'patch'])
     def refresh(self, request, pk=None):
         access_key = self.get_object()
         access_key.key = access_key.generate_key
