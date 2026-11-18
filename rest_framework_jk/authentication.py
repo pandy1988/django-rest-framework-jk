@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
