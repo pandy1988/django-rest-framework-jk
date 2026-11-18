@@ -6,11 +6,11 @@ Key authentication is appropriate for client-server setups, such as native deskt
 
 ## Requirements
 
-- Python 3.5+
+- Python 3.15+
 
-- Django 2.0+
+- Django 6.1+
 
-- Django REST Framework 3.0+
+- Django REST Framework 3.18+
 
 ## Installation
 
